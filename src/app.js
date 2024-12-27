@@ -14,6 +14,7 @@ const userRoute = require('./routes/userRoute');
 
 // middleware
 const notFoundMiddleware = require('./middleware/notFoundMiddleware');
+const errorHandlerMiddleware = require('./middleware/errorHandlerMiddleware');
 
 app.use(express.json());
 
@@ -21,6 +22,7 @@ app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/users', userRoute);
 
 app.use(notFoundMiddleware);
+app.use(errorHandlerMiddleware);
 
 app.listen(_PORT, () => {
   console.log(`Server is running at ${process.env.HOST}:${_PORT}`);
