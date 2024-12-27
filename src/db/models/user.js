@@ -1,5 +1,5 @@
 'use strict';
-const { Model, Sequelize } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 const sequelize = require('../../config/database');
 
@@ -40,6 +40,7 @@ module.exports = sequelize.define(
       type: Sequelize.DATE,
     },
     deletedAt: {
+      allowNull: true,
       type: Sequelize.DATE,
     },
   },
