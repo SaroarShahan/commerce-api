@@ -11,6 +11,7 @@ app.get('/', (req, res) => {
 // Routes
 const authRoute = require('./routes/authRoute');
 const userRoute = require('./routes/userRoute');
+const productRoute = require('./routes/productRoute');
 
 // middleware
 const catchAsync = require('./middleware/catchAsync');
@@ -20,6 +21,7 @@ app.use(express.json());
 
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/users', userRoute);
+app.use('/api/v1/products', productRoute);
 
 app.use(
   '*',
