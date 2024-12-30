@@ -13,16 +13,21 @@ const authRoute = require('./routes/authRoute');
 const userRoute = require('./routes/userRoute');
 
 // middleware
-const notFoundMiddleware = require('./middleware/notFoundMiddleware');
-const errorHandlerMiddleware = require('./middleware/errorHandlerMiddleware');
+const catchAsync = require('./middleware/catchAsync');
+const { AppError, GlobalError } = require('./errors');
 
 app.use(express.json());
 
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/users', userRoute);
 
-app.use(notFoundMiddleware);
-app.use(errorHandlerMiddleware);
+app.use(
+  '*',
+  catchAsync(async (req) => {
+    throw new AppError(`Can't find ${req.originalUrl} on this server`, 404);
+  }),
+);
+app.use(GlobalError);
 
 app.listen(_PORT, () => {
   console.log(`Server is running at ${process.env.HOST}:${_PORT}`);

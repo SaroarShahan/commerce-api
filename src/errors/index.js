@@ -1,13 +1,7 @@
-const CustomAPIError = require('./CustomAPIError');
-const UnauthenticatedError = require('./unauthenticatedError');
-const NotFoundError = require('./notFoundError');
-const BadRequestError = require('./badRequestError');
-const UnauthorizedError = require('./unauthorizedError');
+const AppError = require('./appError');
+const GlobalError = require('./globalError');
 
 module.exports = {
-  CustomAPIError,
-  UnauthenticatedError,
-  NotFoundError,
-  BadRequestError,
-  UnauthorizedError,
+  AppError,
+  GlobalError,
 };
