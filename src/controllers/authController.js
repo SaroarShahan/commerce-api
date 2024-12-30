@@ -1,4 +1,8 @@
+const bcrypt = require('bcrypt');
+
 const User = require('../db/models/user');
+
+const { generateToken } = require('../utils/jwt');
 
 exports.signup = async (req, res, next) => {
   const { first_name, last_name, email, password, role } = req.body;
@@ -24,13 +28,18 @@ exports.signup = async (req, res, next) => {
       });
     }
 
+    const hashPassword = await bcrypt.hash(password, 10);
+
     const newUser = await User.create({
       first_name,
       last_name,
       email,
-      password,
+      password: hashPassword,
       role,
     });
+
+    delete newUser.dataValues.password;
+    delete newUser.dataValues.deletedAt;
 
     res.status(201).json({
       status: true,
@@ -46,24 +55,35 @@ exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
+    if (!email || !password) {
+      return res.status(400).json({
+        status: false,
+        message: 'Email and password are required',
+      });
+    }
+
     const user = await User.findOne({
       where: {
         email,
-        password,
       },
     });
 
-    if (!user) {
-      return res.status(400).json({
+    if (!user || !(await bcrypt.compare(password, user.dataValues.password))) {
+      return res.status(401).json({
         status: false,
         message: 'Invalid email or password',
       });
     }
 
+    const token = await generateToken({
+      id: user.dataValues.id,
+      role: user.dataValues.role,
+    });
+
     res.status(200).json({
       status: true,
       message: 'User logged in successfully',
-      data: user,
+      data: { token },
     });
   } catch (error) {
     next(error);
