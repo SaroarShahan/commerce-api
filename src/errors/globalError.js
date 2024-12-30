@@ -1,4 +1,4 @@
-const AppError = require('./appError');
+const AppError = require('./AppError');
 
 const sendErrorDev = (error, res) => {
   const statusCode = error.statusCode || 500;
