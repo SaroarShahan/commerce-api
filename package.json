@@ -1,5 +1,5 @@
 {
-  "name": "crud-postgress",
+  "name": "commerce-api",
   "version": "1.0.0",
   "main": "app.js",
   "license": "MIT",
@@ -11,7 +11,6 @@
     "bcrypt": "5.1.1",
     "dotenv": "16.4.7",
     "express": "4.21.2",
-    "http-status-codes": "2.3.0",
     "jsonwebtoken": "9.0.2",
     "pg": "8.13.1",
     "pg-hstore": "2.3.4",
