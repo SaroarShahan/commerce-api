@@ -1,20 +1,13 @@
 const catchAsync = require('../middleware/catchAsync');
-const product = require('../db/models/product');
+const Product = require('../db/models/product');
+const User = require('../db/models/user');
 
 exports.createProduct = catchAsync(async (req, res) => {
-  const {
-    title,
-    productImage,
-    price,
-    shortDescription,
-    description,
-    productUrl,
-    category,
-    tags,
-    createdBy,
-  } = req.body;
+  const userId = req.user.id;
+  const { title, productImage, price, shortDescription, description, productUrl, category, tags } =
+    req.body;
 
-  const newProduct = await product.create({
+  const newProduct = await Product.create({
     title,
     productImage,
     price,
@@ -23,7 +16,7 @@ exports.createProduct = catchAsync(async (req, res) => {
     productUrl,
     category,
     tags,
-    createdBy,
+    createdBy: userId,
   });
 
   res.status(201).json({
@@ -33,8 +26,15 @@ exports.createProduct = catchAsync(async (req, res) => {
   });
 });
 
-exports.getAllProducts = catchAsync(async (_, res) => {
-  const products = await product.findAll();
+exports.getAllProducts = catchAsync(async (req, res) => {
+  const products = await Product.findAll({
+    include: {
+      model: User,
+      attributes: {
+        exclude: ['password', 'deletedAt'],
+      },
+    },
+  });
 
   res.status(200).json({
     status: true,
@@ -48,92 +48,65 @@ exports.getAllProducts = catchAsync(async (_, res) => {
   });
 });
 
-exports.getProduct = catchAsync(async (req, res) => {
+exports.getProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const productData = await product.findByPk(id);
+  const product = await Product.findByPk(id, { include: User });
 
-  if (!productData) {
-    return res.status(404).json({
-      status: false,
-      message: 'Product not found',
-    });
+  if (!product) {
+    return next(new Error('Product not found'), 404);
   }
 
   res.status(200).json({
     status: true,
     message: 'Product found',
     data: {
-      product: productData,
+      product,
     },
   });
 });
 
-exports.updateProduct = catchAsync(async (req, res) => {
+exports.updateProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const {
-    title,
-    isFeatured,
-    productImage,
-    price,
-    shortDescription,
-    description,
-    productUrl,
-    category,
-    tags,
-  } = req.body;
+  const { title, productImage, price, shortDescription, description, productUrl, category, tags } =
+    req.body;
 
-  const productData = await product.findByPk(id);
+  const product = await Product.findOne({ where: { id, createdBy: req.user.id } });
 
-  if (!productData) {
-    return res.status(404).json({
-      status: false,
-      message: 'Product not found',
-    });
+  if (!product) {
+    return next(new Error('Product not found'), 404);
   }
 
-  await product.update(
-    {
-      title,
-      isFeatured,
-      productImage,
-      price,
-      shortDescription,
-      description,
-      productUrl,
-      category,
-      tags,
-    },
-    {
-      where: {
-        id,
-      },
-    },
-  );
+  product.title = title;
+  product.productImage = productImage;
+  product.price = price;
+  product.shortDescription = shortDescription;
+  product.description = description;
+  product.productUrl = productUrl;
+  product.category = category;
+  product.tags = tags;
+
+  const updatedProduct = await product.save();
 
   res.status(200).json({
     status: true,
     message: 'Product updated successfully',
+    data: {
+      product: updatedProduct,
+    },
   });
 });
 
-exports.deleteProduct = catchAsync(async (req, res) => {
+exports.deleteProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const productData = await product.findByPk(id);
+  const product = await Product.findOne({ where: { id, createdBy: req.user.id } });
 
-  if (!productData) {
-    return res.status(404).json({
-      status: false,
-      message: 'Product not found',
-    });
+  if (!product) {
+    return next(new Error('Product not found'), 404);
   }
 
-  await product.destroy({
-    where: {
-      id,
-    },
-  });
+  await product.destroy();
 
-  res.status(204).json({
+  res.status(200).json({
     status: true,
     message: 'Product deleted successfully',
   });
